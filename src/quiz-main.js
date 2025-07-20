@@ -451,7 +451,8 @@ class QuizApp {
     this.reviseButton.addEventListener('click', () => this.addToRevision());
     
     document.getElementById('restart-btn').addEventListener('click', () => this.restartQuiz());
-    document.getElementById('home-btn').addEventListener('click', () => this.showWelcomeScreen());
+    document.getElementById('quiz-home-btn').addEventListener('click', () => this.showWelcomeScreen());
+    document.getElementById('results-home-btn').addEventListener('click', () => this.showWelcomeScreen());
     document.getElementById('review-btn').addEventListener('click', () => this.showReview());
     document.getElementById('back-from-review').addEventListener('click', () => this.backToResults());
     
