@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>English Vocabulary Quiz</title>
+  <link rel="stylesheet" href="src/quiz-style.css">
+</head>
+<body>
+  <div class="app">
+    <!-- Welcome Screen -->
+    <div id="welcome-screen" class="screen">
+      <div class="welcome-container">
+        <div class="header">
+          <h1>English Vocabulary Quiz</h1>
+          <p>Test your knowledge of antonyms and synonyms</p>
+        </div>
+
+        <div class="difficulty-selector">
+          <h3>Choose Difficulty</h3>
+          <div class="difficulty-options">
+            <label class="difficulty-option">
+              <input type="radio" name="difficulty" value="easy" checked>
+              <span class="difficulty-card">
+                <span class="difficulty-icon">🌱</span>
+                <span class="difficulty-name">Easy</span>
+                <span class="difficulty-desc">45s per question</span>
+              </span>
+            </label>
+            <label class="difficulty-option">
+              <input type="radio" name="difficulty" value="medium">
+              <span class="difficulty-card">
+                <span class="difficulty-icon">⚡</span>
+                <span class="difficulty-name">Medium</span>
+                <span class="difficulty-desc">30s per question</span>
+              </span>
+            </label>
+            <label class="difficulty-option">
+              <input type="radio" name="difficulty" value="hard">
+              <span class="difficulty-card">
+                <span class="difficulty-icon">🔥</span>
+                <span class="difficulty-name">Hard</span>
+                <span class="difficulty-desc">15s per question</span>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="quiz-options">
+          <button id="start-antonyms" class="quiz-btn antonyms-btn">
+            <span class="icon">⚡</span>
+            <span class="text">Practice Antonyms</span>
+            <span class="count">93+ questions</span>
+          </button>
+          <button id="start-synonyms" class="quiz-btn synonyms-btn">
+            <span class="icon">🎯</span>
+            <span class="text">Practice Synonyms</span>
+            <span class="count">100 questions</span>
+          </button>
+        </div>
+
+        <div class="keyboard-shortcuts">
+          <h3>⌨️ Keyboard Shortcuts</h3>
+          <div class="shortcuts-grid">
+            <div class="shortcut">
+              <kbd>1-4</kbd>
+              <span>Select Answer</span>
+            </div>
+            <div class="shortcut">
+              <kbd>Enter</kbd>
+              <span>Continue</span>
+            </div>
+            <div class="shortcut">
+              <kbd>Esc</kbd>
+              <span>Finish Quiz</span>
+            </div>
+          </div>
+        </div>
+
+
+        
+      </div>
+    </div>
+
+    <!-- Quiz Screen -->
+    <div id="quiz-screen" class="screen" style="display: none;">
+      <div class="quiz-container">
+        <div class="quiz-header">
+          <div class="progress-info">
+            <span id="progress">Question 1</span>
+            <span id="score">Score: 0/0</span>
+          </div>
+          <div class="progress-bar-container">
+            <div id="progress-bar" class="progress-bar"></div>
+          </div>
+        </div>
+
+        <div class="question-section">
+          <h2 id="question">Loading...</h2>
+          <div id="word-meaning" class="word-meaning" style="display: none;">Meaning will appear here</div>
+        </div>
+
+        <div id="options" class="options-grid">
+          <!-- Options will be generated dynamically -->
+        </div>
+
+        <div class="quiz-actions">
+          <button id="continue-btn" class="btn btn-primary" style="display: none;">Continue</button>
+          <button id="finish-btn" class="btn btn-secondary" style="display: none;">Finish Quiz</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Results Screen -->
+    <div id="results-screen" class="screen" style="display: none;">
+      <div class="results-container">
+        <div class="results-header">
+          <h2>Quiz Results</h2>
+          <div class="score-display">
+            <div class="final-score">
+              <span id="final-score">0/0</span>
+              <span id="percentage">0%</span>
+            </div>
+            <div id="result-message" class="result-message">Great job!</div>
+          </div>
+        </div>
+
+        <div class="results-actions">
+          <button id="review-btn" class="btn btn-outline">Review Mistakes</button>
+          <button id="restart-btn" class="btn btn-primary">Try Again</button>
+          <button id="home-btn" class="btn btn-secondary">Back to Home</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Review Screen -->
+    <div id="review-screen" class="screen" style="display: none;">
+      <div class="review-container">
+        <div class="review-header">
+          <h2>Review Your Mistakes</h2>
+          <p>Learn from these questions to improve your vocabulary</p>
+        </div>
+
+        <div id="review-list" class="review-list">
+          <!-- Mistake reviews will be generated dynamically -->
+        </div>
+
+        <div class="review-actions">
+          <button id="back-from-review" class="btn btn-primary">Back to Results</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/quiz-main.js"></script>
+</body>
+</html>
