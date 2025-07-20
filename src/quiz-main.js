@@ -17,11 +17,159 @@ class QuizApp {
     this.timer = null;
     this.timePerQuestion = 30; // 30 seconds per question
     this.timeLeft = this.timePerQuestion;
+    this.randomizedQuizData = null; // Will store randomized questions
     
     this.initializeElements();
     this.attachEventListeners();
+    this.randomizeQuizData(); // Randomize data on initialization
     this.showWelcomeScreen();
     this.setupKeyboardNavigation();
+  }
+
+  // Fisher-Yates shuffle algorithm for randomizing arrays
+  shuffleArray(array) {
+    const shuffled = [...array];
+    for (let i = shuffled.length - 1; i > 0; i--) {
+      const j = Math.floor(Math.random() * (i + 1));
+      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+    }
+    return shuffled;
+  }
+
+  // Randomize options within a question while maintaining correct answer mapping
+  randomizeQuestionOptions(question) {
+    const originalOptions = [...question.options];
+    const correctAnswer = originalOptions[question.correct];
+    
+    // Shuffle the options
+    const shuffledOptions = this.shuffleArray(originalOptions);
+    
+    // Find the new position of the correct answer
+    const newCorrectIndex = shuffledOptions.indexOf(correctAnswer);
+    
+    return {
+      ...question,
+      options: shuffledOptions,
+      correct: newCorrectIndex
+    };
+  }
+
+  // Randomize all quiz data on initialization
+  randomizeQuizData() {
+    this.randomizedQuizData = {
+      antonyms: [],
+      synonyms: []
+    };
+    
+    // Randomize antonyms
+    const shuffledAntonyms = this.shuffleArray(quizData.antonyms);
+    this.randomizedQuizData.antonyms = shuffledAntonyms.map(question => 
+      this.randomizeQuestionOptions(question)
+    );
+    
+    // Randomize synonyms
+    const shuffledSynonyms = this.shuffleArray(quizData.synonyms);
+    this.randomizedQuizData.synonyms = shuffledSynonyms.map(question => 
+      this.randomizeQuestionOptions(question)
+    );
+    
+    console.log('Quiz data randomized! Questions and options shuffled.');
+    this.showRandomizationNotification();
+  }
+
+  // Show notification that questions have been randomized
+  showRandomizationNotification() {
+    // Delay notification to avoid showing immediately on page load
+    setTimeout(() => {
+      // Create notification element
+      const notification = document.createElement('div');
+      notification.className = 'randomization-notification';
+      notification.innerHTML = `
+        <span class="notification-icon">🎲</span>
+        <span class="notification-text">Questions randomized for a fresh challenge!</span>
+      `;
+      
+      // Add to document
+      document.body.appendChild(notification);
+      
+      // Show notification
+      setTimeout(() => {
+        notification.classList.add('show');
+      }, 100);
+      
+      // Hide and remove notification
+      setTimeout(() => {
+        notification.classList.remove('show');
+        setTimeout(() => {
+          if (notification.parentNode) {
+            notification.parentNode.removeChild(notification);
+          }
+        }, 300);
+      }, 3000);
+    }, 1000);
+  }
+
+  // Manual reshuffle function for the button
+  reshuffleQuestions() {
+    this.randomizeQuizData();
+    
+    // Visual feedback
+    const randomizeBtn = document.getElementById('randomize-btn');
+    const originalText = randomizeBtn.innerHTML;
+    
+    randomizeBtn.innerHTML = '<span class="icon">✓</span><span>Questions Shuffled!</span>';
+    randomizeBtn.style.background = 'var(--success)';
+    randomizeBtn.style.color = 'white';
+    randomizeBtn.style.border = 'none';
+    
+    setTimeout(() => {
+      randomizeBtn.innerHTML = originalText;
+      randomizeBtn.style.background = '';
+      randomizeBtn.style.color = '';
+      randomizeBtn.style.border = '';
+    }, 2000);
+  }
+
+  // Get appropriate explanation for antonyms vs synonyms
+  getAnswerExplanation(question, correctAnswer) {
+    if (this.currentQuizType === 'antonyms') {
+      // Create a mapping of some common antonym explanations
+      const antonymExplanations = {
+        'intensify': 'to increase in strength or degree',
+        'normality': 'the condition of being normal or usual',
+        'admire': 'to regard with respect and approval',
+        'indulge': 'to allow oneself to enjoy something',
+        'oppose': 'to disagree with or resist',
+        'flexible': 'able to bend or adapt easily',
+        'selfish': 'lacking consideration for others',
+        'clear': 'easy to understand or see',
+        'worsen': 'to become or make worse',
+        'enthusiastic': 'showing great excitement and interest',
+        'humble': 'showing modest view of one\'s importance',
+        'timid': 'showing lack of courage or confidence',
+        'luxurious': 'extremely comfortable and expensive',
+        'malevolent': 'having evil intentions',
+        'lengthiness': 'the quality of being long or extended',
+        'harmony': 'a pleasing combination of elements',
+        'consistent': 'acting in the same way over time',
+        'reckless': 'without thinking of consequences',
+        'persuade': 'to convince someone through reasoning',
+        'wordy': 'using too many words',
+        'disagree': 'to have a different opinion',
+        'hidden': 'kept out of sight',
+        'unrepentant': 'showing no regret for wrongdoing',
+        'scarce': 'insufficient for demand',
+        'obvious': 'easily seen or understood',
+        'thorough': 'complete with attention to detail',
+        'cowardly': 'lacking courage'
+      };
+      
+      const antonymMeaning = antonymExplanations[correctAnswer] || 'the opposite concept';
+      return `"${question.word}" means ${question.meaning}, while its antonym "${correctAnswer}" means ${antonymMeaning}.`;
+    } else {
+      // For synonyms
+      return `Both "${question.word}" and "${correctAnswer}" share similar meanings: ${question.meaning}`;
+    }
   }
 
   initializeElements() {
@@ -126,6 +274,7 @@ class QuizApp {
   attachEventListeners() {
     document.getElementById('start-antonyms').addEventListener('click', () => this.startQuiz('antonyms'));
     document.getElementById('start-synonyms').addEventListener('click', () => this.startQuiz('synonyms'));
+    document.getElementById('randomize-btn').addEventListener('click', () => this.reshuffleQuestions());
     
     this.continueButton.addEventListener('click', () => this.nextQuestion());
     this.finishButton.addEventListener('click', () => this.showResults());
@@ -188,21 +337,21 @@ class QuizApp {
   }
 
   getRandomQuestion() {
-    const availableQuestions = quizData[this.currentQuizType].filter(
+    const availableQuestions = this.randomizedQuizData[this.currentQuizType].filter(
       (_, index) => !this.answeredQuestions.includes(index)
     );
     
     if (availableQuestions.length === 0) {
       // All questions answered, reset the pool
       this.answeredQuestions = [];
-      return quizData[this.currentQuizType][Math.floor(Math.random() * quizData[this.currentQuizType].length)];
+      return this.randomizedQuizData[this.currentQuizType][Math.floor(Math.random() * this.randomizedQuizData[this.currentQuizType].length)];
     }
     
     const randomIndex = Math.floor(Math.random() * availableQuestions.length);
     const selectedQuestion = availableQuestions[randomIndex];
     
     // Mark this question as answered
-    const originalIndex = quizData[this.currentQuizType].indexOf(selectedQuestion);
+    const originalIndex = this.randomizedQuizData[this.currentQuizType].indexOf(selectedQuestion);
     this.answeredQuestions.push(originalIndex);
     
     return selectedQuestion;
@@ -344,11 +493,18 @@ class QuizApp {
     // Show correct answer explanation and word meaning
     const correctAnswer = question.options[question.correct];
     const answerMeaning = document.getElementById('answer-meaning');
-    answerMeaning.textContent = `The correct answer is "${correctAnswer}". ${question.meaning}`;
-    this.answerExplanation.classList.add('show');
     
-    // Also show the word meaning in the question section
-    this.meaningElement.textContent = `Word Meaning: ${question.meaning}`;
+    if (this.currentQuizType === 'antonyms') {
+      // For antonyms, explain the relationship between the words
+      answerMeaning.textContent = `The correct antonym is "${correctAnswer}". "${question.word}" means ${question.meaning}, while "${correctAnswer}" means the opposite.`;
+      this.meaningElement.textContent = `"${question.word}" means: ${question.meaning}`;
+    } else {
+      // For synonyms, show the shared meaning
+      answerMeaning.textContent = `The correct synonym is "${correctAnswer}". Both "${question.word}" and "${correctAnswer}" have similar meanings.`;
+      this.meaningElement.textContent = `Both words mean: ${question.meaning}`;
+    }
+    
+    this.answerExplanation.classList.add('show');
     this.meaningElement.style.display = 'block';
     
     buttons.forEach(btn => btn.classList.add('disabled'));
