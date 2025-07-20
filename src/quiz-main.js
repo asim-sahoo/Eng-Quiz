@@ -494,14 +494,13 @@ class QuizApp {
     const correctAnswer = question.options[question.correct];
     const answerMeaning = document.getElementById('answer-meaning');
     
+    // Use the improved explanation function
+    answerMeaning.textContent = this.getAnswerExplanation(question, correctAnswer);
+    
     if (this.currentQuizType === 'antonyms') {
-      // For antonyms, explain the relationship between the words
-      answerMeaning.textContent = `The correct antonym is "${correctAnswer}". "${question.word}" means ${question.meaning}, while "${correctAnswer}" means the opposite.`;
       this.meaningElement.textContent = `"${question.word}" means: ${question.meaning}`;
     } else {
-      // For synonyms, show the shared meaning
-      answerMeaning.textContent = `The correct synonym is "${correctAnswer}". Both "${question.word}" and "${correctAnswer}" have similar meanings.`;
-      this.meaningElement.textContent = `Both words mean: ${question.meaning}`;
+      this.meaningElement.textContent = `Word meaning: ${question.meaning}`;
     }
     
     this.answerExplanation.classList.add('show');
