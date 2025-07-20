@@ -10,7 +10,7 @@ class QuizApp {
     this.currentQuizType = 'antonyms';
     this.mistakes = [];
     this.answeredQuestions = [];
-    this.maxQuestions = null; // No limit on questions
+    this.maxQuestions = 10; // Limit to 10 questions per quiz session
     this.soundEnabled = true;
     this.streak = 0;
     this.bestStreak = 0;
@@ -133,7 +133,7 @@ class QuizApp {
     document.getElementById('restart-btn').addEventListener('click', () => this.restartQuiz());
     document.getElementById('home-btn').addEventListener('click', () => this.showWelcomeScreen());
     document.getElementById('review-btn').addEventListener('click', () => this.showReview());
-    document.getElementById('back-from-review').addEventListener('click', () => this.showResults());
+    document.getElementById('back-from-review').addEventListener('click', () => this.backToResults());
   }
 
   showWelcomeScreen() {
@@ -358,22 +358,28 @@ class QuizApp {
 
   nextQuestion() {
     this.currentQuestionIndex++;
+    
+    // Check if we've reached the maximum questions limit
+    if (this.currentQuestionIndex >= this.maxQuestions) {
+      this.showResults();
+      return;
+    }
+    
     this.loadQuestion();
   }
 
   updateProgress() {
     const questionsAnswered = this.currentQuestionIndex + 1;
-    this.progressElement.textContent = `Question ${questionsAnswered}`;
+    this.progressElement.textContent = `Question ${questionsAnswered}/${this.maxQuestions}`;
   }
 
   updateProgressBar() {
-    // Update progress bar based on questions answered (simulate progress)
+    // Update progress bar based on questions answered vs maximum
     const questionsAnswered = this.currentQuestionIndex + 1;
-    const targetQuestions = Math.max(10, questionsAnswered + 2); // Show progress relative to estimated remaining
-    const progressPercentage = (questionsAnswered / targetQuestions) * 100;
+    const progressPercentage = (questionsAnswered / this.maxQuestions) * 100;
     
     if (this.progressBar) {
-      this.progressBar.style.width = `${Math.min(progressPercentage, 95)}%`;
+      this.progressBar.style.width = `${progressPercentage}%`;
     }
   }
 
@@ -442,8 +448,17 @@ class QuizApp {
     const questionsAnswered = this.currentQuestionIndex + 1;
     const percentage = Math.round((this.score / questionsAnswered) * 100);
     
+    // Clear timer
+    if (this.timer) {
+      clearInterval(this.timer);
+      this.timer = null;
+    }
+    
     this.quizScreen.style.display = 'none';
     this.resultsScreen.style.display = 'block';
+    
+    // Ensure responsive layout is applied
+    this.resultsScreen.classList.add('show');
     
     document.getElementById('final-score').textContent = `${this.score}/${questionsAnswered}`;
     document.getElementById('percentage').textContent = `${percentage}%`;
@@ -466,12 +481,14 @@ class QuizApp {
     
     // Animate score display
     const scoreDisplay = document.querySelector('.score-display');
-    scoreDisplay.style.transform = 'scale(0.8)';
-    scoreDisplay.style.opacity = '0';
-    setTimeout(() => {
-      scoreDisplay.style.transform = 'scale(1)';
-      scoreDisplay.style.opacity = '1';
-    }, 100);
+    if (scoreDisplay) {
+      scoreDisplay.style.transform = 'scale(0.8)';
+      scoreDisplay.style.opacity = '0';
+      setTimeout(() => {
+        scoreDisplay.style.transform = 'scale(1)';
+        scoreDisplay.style.opacity = '1';
+      }, 100);
+    }
     
     const reviewBtn = document.getElementById('review-btn');
     reviewBtn.style.display = this.mistakes.length > 0 ? 'inline-block' : 'none';
@@ -480,6 +497,9 @@ class QuizApp {
   showReview() {
     this.resultsScreen.style.display = 'none';
     this.reviewScreen.style.display = 'block';
+    
+    // Ensure responsive layout is applied
+    this.reviewScreen.classList.add('show');
     
     const reviewList = document.getElementById('review-list');
     reviewList.innerHTML = '';
@@ -501,6 +521,15 @@ class QuizApp {
       `;
       reviewList.appendChild(item);
     });
+  }
+
+  backToResults() {
+    this.reviewScreen.style.display = 'none';
+    this.resultsScreen.style.display = 'block';
+    
+    // Ensure responsive layout is applied
+    this.resultsScreen.classList.add('show');
+    this.reviewScreen.classList.remove('show');
   }
 
   restartQuiz() {

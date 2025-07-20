@@ -57,16 +57,27 @@ body {
 }
 
 /* Screen Management */
+/* Screen transitions and visibility */
 .screen {
-  width: 100%;
-  background: rgba(255, 255, 255, 0.98);
+  background: rgba(255, 255, 255, 0.95);
   backdrop-filter: blur(20px);
   border-radius: var(--border-radius-lg);
   box-shadow: var(--shadow-xl);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  overflow: hidden;
-  animation: slideInBounce 0.8s cubic-bezier(0.16, 1, 0.3, 1);
   position: relative;
+  overflow: hidden;
+  min-height: 400px;
+  transition: var(--transition);
+}
+
+.screen.show {
+  display: block !important;
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.screen:not(.show) {
+  opacity: 0;
+  transform: translateY(20px);
 }
 
 .screen::before {
@@ -1170,7 +1181,8 @@ body {
 
   .welcome-container,
   .quiz-container,
-  .results-container {
+  .results-container,
+  .review-container {
     padding: 24px 16px;
   }
 
@@ -1214,7 +1226,8 @@ body {
   }
 
   .quiz-actions,
-  .results-actions {
+  .results-actions,
+  .review-actions {
     flex-direction: column;
     align-items: center;
     gap: 12px;
@@ -1223,6 +1236,29 @@ body {
   .btn {
     width: 100%;
     max-width: 300px;
+  }
+
+  /* Mobile results screen */
+  .results-header h2 {
+    font-size: 2rem;
+  }
+
+  .final-score {
+    font-size: 2.5rem;
+  }
+
+  .score-display {
+    padding: 30px 20px;
+  }
+
+  /* Mobile review screen */
+  .review-header h2 {
+    font-size: 2rem;
+  }
+
+  .review-list {
+    flex-direction: column;
+    gap: 16px;
   }
 }
 
@@ -1244,7 +1280,7 @@ body {
   }
 
   .final-score {
-    font-size: 1.8rem;
+    font-size: 2rem;
   }
 
   /* Single column layout for very small screens */
@@ -1274,7 +1310,8 @@ body {
 
   .welcome-container,
   .quiz-container,
-  .results-container {
+  .results-container,
+  .review-container {
     padding: 16px 12px;
   }
 
@@ -1285,6 +1322,24 @@ body {
   .quiz-option {
     padding: 12px;
     font-size: 0.9rem;
+  }
+
+  /* Very small screen results and review */
+  .results-header h2,
+  .review-header h2 {
+    font-size: 1.6rem;
+  }
+
+  .score-display {
+    padding: 24px 16px;
+  }
+
+  .final-score {
+    font-size: 1.8rem;
+  }
+
+  .result-message {
+    font-size: 1rem;
   }
 }
 
