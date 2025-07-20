@@ -133,7 +133,7 @@ class QuizApp {
   // Get appropriate explanation for antonyms vs synonyms
   getAnswerExplanation(question, correctAnswer) {
     if (this.currentQuizType === 'antonyms') {
-      // Create a mapping of some common antonym explanations
+      // Create a mapping of common antonym explanations
       const antonymExplanations = {
         'intensify': 'to increase in strength or degree',
         'normality': 'the condition of being normal or usual',
@@ -161,7 +161,21 @@ class QuizApp {
         'scarce': 'insufficient for demand',
         'obvious': 'easily seen or understood',
         'thorough': 'complete with attention to detail',
-        'cowardly': 'lacking courage'
+        'cowardly': 'lacking courage',
+        'calm': 'not showing excitement or worry',
+        'generous': 'freely giving or sharing',
+        'modern': 'relating to present times',
+        'peaceful': 'free from disturbance',
+        'thoughtful': 'showing consideration for others',
+        'ordinary': 'with no special features',
+        'beneficial': 'favorable or advantageous',
+        'cheerful': 'noticeably happy and optimistic',
+        'polite': 'showing good manners',
+        'truthful': 'telling or expressing the truth',
+        'moral': 'concerned with principles of right conduct',
+        'serious': 'demanding careful thought',
+        'energetic': 'showing great activity',
+        'wise': 'having experience and good judgment'
       };
       
       const antonymMeaning = antonymExplanations[correctAnswer] || 'the opposite concept';
