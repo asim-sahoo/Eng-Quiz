@@ -18,10 +18,14 @@ class QuizApp {
     this.timePerQuestion = 30; // 30 seconds per question
     this.timeLeft = this.timePerQuestion;
     this.randomizedQuizData = null; // Will store randomized questions
+    this.currentQuestion = null; // Store current question being displayed
+    this.skippedCount = 0; // Track skipped questions
+    this.revisionList = []; // Store words marked for revision
     
     this.initializeElements();
     this.attachEventListeners();
     this.randomizeQuizData(); // Randomize data on initialization
+    this.loadRevisionList(); // Load revision list from localStorage
     this.showWelcomeScreen();
     this.setupKeyboardNavigation();
   }
@@ -252,6 +256,7 @@ class QuizApp {
     this.resultsScreen = document.getElementById('results-screen');
     this.reviewScreen = document.getElementById('review-screen');
     this.studyScreen = document.getElementById('study-screen');
+    this.revisionScreen = document.getElementById('revision-screen');
     
     this.questionElement = document.getElementById('question');
     this.meaningElement = document.getElementById('word-meaning');
@@ -260,6 +265,8 @@ class QuizApp {
     this.scoreElement = document.getElementById('score');
     this.continueButton = document.getElementById('continue-btn');
     this.finishButton = document.getElementById('finish-btn');
+    this.skipButton = document.getElementById('skip-btn');
+    this.reviseButton = document.getElementById('revise-btn');
     
     // Create answer explanation element
     this.answerExplanation = document.createElement('div');
@@ -301,6 +308,13 @@ class QuizApp {
           const index = parseInt(e.key) - 1;
           if (options[index]) {
             options[index].click();
+          }
+        }
+        
+        // Add skip functionality with 'S' key
+        if (e.key === 's' || e.key === 'S') {
+          if (this.skipButton && this.skipButton.style.display !== 'none') {
+            this.skipButton.click();
           }
         }
       }
@@ -346,14 +360,95 @@ class QuizApp {
     oscillator.stop(audioContext.currentTime + 0.3);
   }
 
+  // LocalStorage methods for revision list persistence
+  loadRevisionList() {
+    try {
+      const saved = localStorage.getItem('quiz-revision-list');
+      if (saved) {
+        this.revisionList = JSON.parse(saved);
+        if (this.revisionList.length > 0) {
+          console.log(`Loaded ${this.revisionList.length} words from revision list`);
+          // Show notification after a short delay to avoid showing on initial load
+          setTimeout(() => {
+            this.showNotification(`📝 Loaded ${this.revisionList.length} saved words for revision`, 'success');
+          }, 1500);
+        }
+      }
+    } catch (error) {
+      console.error('Error loading revision list:', error);
+      this.revisionList = [];
+    }
+  }
+
+  saveRevisionList() {
+    try {
+      localStorage.setItem('quiz-revision-list', JSON.stringify(this.revisionList));
+    } catch (error) {
+      console.error('Error saving revision list:', error);
+    }
+  }
+
+  // Optional: Export revision list as JSON file
+  exportRevisionList() {
+    if (this.revisionList.length === 0) {
+      this.showNotification('📝 No words to export', 'warning');
+      return;
+    }
+
+    const dataStr = JSON.stringify(this.revisionList, null, 2);
+    const dataBlob = new Blob([dataStr], { type: 'application/json' });
+    const url = URL.createObjectURL(dataBlob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `quiz-revision-list-${new Date().toISOString().split('T')[0]}.json`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    
+    this.showNotification('📝 Revision list exported successfully!', 'success');
+  }
+
+  // Optional: Import revision list from JSON file
+  importRevisionList(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const imported = JSON.parse(e.target.result);
+        if (Array.isArray(imported)) {
+          // Merge with existing list, avoiding duplicates
+          imported.forEach(item => {
+            const exists = this.revisionList.find(existing => 
+              existing.word === item.word && existing.type === item.type
+            );
+            if (!exists) {
+              this.revisionList.push(item);
+            }
+          });
+          this.saveRevisionList();
+          this.showNotification(`📝 Imported ${imported.length} words to revision list!`, 'success');
+        }
+      } catch (error) {
+        this.showNotification('❌ Invalid file format', 'warning');
+      }
+    };
+    reader.readAsText(file);
+  }
+
   attachEventListeners() {
     document.getElementById('start-antonyms').addEventListener('click', () => this.startQuiz('antonyms'));
     document.getElementById('start-synonyms').addEventListener('click', () => this.startQuiz('synonyms'));
     document.getElementById('study-mode').addEventListener('click', () => this.showStudyMode());
+    document.getElementById('revision-mode').addEventListener('click', () => this.showRevisionMode());
     document.getElementById('randomize-btn').addEventListener('click', () => this.reshuffleQuestions());
     
     this.continueButton.addEventListener('click', () => this.nextQuestion());
     this.finishButton.addEventListener('click', () => this.showResults());
+    this.skipButton.addEventListener('click', () => this.skipQuestion());
+    this.reviseButton.addEventListener('click', () => this.addToRevision());
     
     document.getElementById('restart-btn').addEventListener('click', () => this.restartQuiz());
     document.getElementById('home-btn').addEventListener('click', () => this.showWelcomeScreen());
@@ -362,6 +457,8 @@ class QuizApp {
     
     // Study mode event listeners
     document.getElementById('back-from-study').addEventListener('click', () => this.showWelcomeScreen());
+    document.getElementById('back-from-revision').addEventListener('click', () => this.showWelcomeScreen());
+    document.getElementById('clear-revision').addEventListener('click', () => this.clearRevisionList());
     document.getElementById('show-antonyms').addEventListener('click', () => this.showStudyType('antonyms'));
     document.getElementById('show-synonyms').addEventListener('click', () => this.showStudyType('synonyms'));
     document.getElementById('toggle-alphabetical').addEventListener('click', () => this.toggleAlphabeticalSort());
@@ -374,6 +471,7 @@ class QuizApp {
     this.resultsScreen.style.display = 'none';
     this.reviewScreen.style.display = 'none';
     this.studyScreen.style.display = 'none';
+    this.revisionScreen.style.display = 'none';
     
     // Ensure welcome screen is visible
     this.welcomeScreen.classList.add('show');
@@ -381,12 +479,17 @@ class QuizApp {
     this.resultsScreen.classList.remove('show');
     this.reviewScreen.classList.remove('show');
     this.studyScreen.classList.remove('show');
+    this.revisionScreen.classList.remove('show');
+    
+    // Update revision count on welcome screen
+    this.updateRevisionCount();
   }
 
   startQuiz(type) {
     this.currentQuizType = type;
     this.currentQuestionIndex = 0;
     this.score = 0;
+    this.skippedCount = 0; // Reset skipped count
     this.mistakes = [];
     this.answeredQuestions = [];
     this.streak = 0;
@@ -445,10 +548,10 @@ class QuizApp {
   }
 
   loadQuestion() {
-    const currentQuestion = this.getRandomQuestion();
+    this.currentQuestion = this.getRandomQuestion();
     
     // Check if all questions are completed
-    if (!currentQuestion) {
+    if (!this.currentQuestion) {
       this.showResults();
       return;
     }
@@ -456,7 +559,7 @@ class QuizApp {
     this.selectedAnswer = null;
     this.isAnswered = false;
     
-    this.questionElement.textContent = `What is the ${this.currentQuizType.slice(0, -1)} of "${currentQuestion.word}"?`;
+    this.questionElement.textContent = `What is the ${this.currentQuizType.slice(0, -1)} of "${this.currentQuestion.word}"?`;
     
     // Hide word meaning initially - will show after answer
     this.meaningElement.style.display = 'none';
@@ -466,16 +569,18 @@ class QuizApp {
     
     this.optionsContainer.innerHTML = '';
     
-    currentQuestion.options.forEach((option, index) => {
+    this.currentQuestion.options.forEach((option, index) => {
       const button = document.createElement('button');
       button.className = 'option';
       button.textContent = option;
-      button.addEventListener('click', () => this.selectAnswer(index, currentQuestion));
+      button.addEventListener('click', () => this.selectAnswer(index, this.currentQuestion));
       this.optionsContainer.appendChild(button);
     });
     
     this.updateProgress();
     this.hideActionButtons();
+    this.hideSkipButton();
+    this.showSkipButton();
     this.startTimer();
   }
 
@@ -537,6 +642,7 @@ class QuizApp {
     
     this.updateStreakCounter();
     this.showActionButtons();
+    this.hideSkipButton();
   }
 
   stopTimer() {
@@ -603,6 +709,7 @@ class QuizApp {
     buttons.forEach(btn => btn.classList.add('disabled'));
     this.stopTimer(); // Stop the timer when answer is selected
     this.showActionButtons();
+    this.showRevisionButton();
     this.updateScore();
     this.updateProgressBar();
   }
@@ -610,11 +717,238 @@ class QuizApp {
   showActionButtons() {
     this.continueButton.style.display = 'inline-block';
     this.finishButton.style.display = 'inline-block';
+    this.hideSkipButton();
   }
 
   hideActionButtons() {
     this.continueButton.style.display = 'none';
     this.finishButton.style.display = 'none';
+    this.hideRevisionButton();
+  }
+
+  skipQuestion() {
+    if (this.isAnswered || !this.currentQuestion) return; // Can't skip if already answered or no question loaded
+    
+    // Mark as answered and increment skip count
+    this.isAnswered = true;
+    this.skippedCount++;
+    this.streak = 0; // Reset streak on skip
+    this.updateStreakCounter();
+    
+    // Show the correct answer when skipping
+    const buttons = this.optionsContainer.querySelectorAll('.option');
+    buttons[this.currentQuestion.correct].classList.add('correct');
+    
+    // Show explanation for skipped question
+    const correctAnswer = this.currentQuestion.options[this.currentQuestion.correct];
+    const answerMeaning = document.getElementById('answer-meaning');
+    answerMeaning.textContent = this.getAnswerExplanation(this.currentQuestion, correctAnswer);
+    
+    if (this.currentQuizType === 'antonyms') {
+      this.meaningElement.textContent = `"${this.currentQuestion.word}" means: ${this.currentQuestion.meaning}`;
+    } else {
+      this.meaningElement.textContent = `Word meaning: ${this.currentQuestion.meaning}`;
+    }
+    
+    this.answerExplanation.classList.add('show');
+    this.meaningElement.style.display = 'block';
+    
+    // Record as a mistake for review (since it was skipped)
+    this.mistakes.push({
+      question: this.currentQuestion.word,
+      meaning: this.currentQuestion.meaning,
+      yourAnswer: "Skipped",
+      correctAnswer: this.currentQuestion.options[this.currentQuestion.correct],
+      type: this.currentQuizType,
+      skipped: true
+    });
+    
+    buttons.forEach(btn => btn.classList.add('disabled'));
+    this.stopTimer();
+    this.showActionButtons();
+    this.showRevisionButton();
+    this.hideSkipButton();
+    this.updateProgressBar();
+  }
+
+  getCurrentQuestion() {
+    // Find the current question that hasn't been answered yet
+    const availableQuestions = this.randomizedQuizData[this.currentQuizType].filter(
+      (_, index) => !this.answeredQuestions.includes(index)
+    );
+    
+    if (availableQuestions.length === 0) return null;
+    
+    // Return the first available question (the one currently being displayed)
+    return availableQuestions[0];
+  }
+
+  showRevisionButton() {
+    if (this.reviseButton) {
+      this.reviseButton.style.display = 'inline-block';
+    }
+  }
+
+  hideRevisionButton() {
+    if (this.reviseButton) {
+      this.reviseButton.style.display = 'none';
+    }
+  }
+
+  addToRevision() {
+    if (!this.currentQuestion) return;
+    
+    // Check if word is already in revision list
+    const exists = this.revisionList.find(item => 
+      item.word === this.currentQuestion.word && item.type === this.currentQuizType
+    );
+    
+    if (!exists) {
+      this.revisionList.push({
+        word: this.currentQuestion.word,
+        meaning: this.currentQuestion.meaning,
+        correctAnswer: this.currentQuestion.options[this.currentQuestion.correct],
+        type: this.currentQuizType,
+        addedAt: new Date().toLocaleString()
+      });
+      
+      // Save to localStorage
+      this.saveRevisionList();
+      
+      // Show notification
+      this.showNotification('📝 Added to revision list!', 'success');
+      
+      // Update button text temporarily
+      this.reviseButton.innerHTML = '<span class="icon">✅</span><span>Added!</span>';
+      setTimeout(() => {
+        this.reviseButton.innerHTML = '<span class="icon">📝</span><span>Add to Revise</span>';
+      }, 2000);
+    } else {
+      this.showNotification('📝 Already in revision list', 'warning');
+    }
+  }
+
+  showSkipButton() {
+    if (this.skipButton) {
+      this.skipButton.style.display = 'inline-block';
+    }
+  }
+
+  hideSkipButton() {
+    if (this.skipButton) {
+      this.skipButton.style.display = 'none';
+    }
+  }
+
+  showNotification(message, type = 'info') {
+    // Remove existing notification
+    const existingNotification = document.querySelector('.quiz-notification');
+    if (existingNotification) {
+      existingNotification.remove();
+    }
+
+    // Create new notification
+    const notification = document.createElement('div');
+    notification.className = `quiz-notification ${type}`;
+    notification.textContent = message;
+    
+    document.body.appendChild(notification);
+    
+    // Show notification
+    setTimeout(() => notification.classList.add('show'), 10);
+    
+    // Hide and remove notification
+    setTimeout(() => {
+      notification.classList.remove('show');
+      setTimeout(() => notification.remove(), 300);
+    }, 3000);
+  }
+
+  showRevisionMode() {
+    this.welcomeScreen.style.display = 'none';
+    this.quizScreen.style.display = 'none';
+    this.resultsScreen.style.display = 'none';
+    this.reviewScreen.style.display = 'none';
+    this.studyScreen.style.display = 'none';
+    this.revisionScreen.style.display = 'block';
+    
+    this.revisionScreen.classList.add('show');
+    this.welcomeScreen.classList.remove('show');
+    
+    this.displayRevisionList();
+  }
+
+  displayRevisionList() {
+    const revisionWords = document.getElementById('revision-words');
+    const revisionListCount = document.getElementById('revision-list-count');
+    const clearButton = document.getElementById('clear-revision');
+    
+    if (this.revisionList.length === 0) {
+      revisionWords.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-icon">📝</div>
+          <h3>No words in revision list</h3>
+          <p>When taking quizzes, use the "Add to Revise" button to save words for later review.</p>
+        </div>
+      `;
+      revisionListCount.textContent = 'No words added yet';
+      clearButton.style.display = 'none';
+    } else {
+      revisionWords.innerHTML = '';
+      this.revisionList.forEach((item, index) => {
+        const revisionItem = document.createElement('div');
+        revisionItem.className = 'study-item revision-item';
+        revisionItem.innerHTML = `
+          <div class="study-type-badge ${item.type.slice(0, -1)}">${item.type.slice(0, -1)}</div>
+          <div class="study-word">${item.word}</div>
+          <div class="study-meaning">${item.meaning}</div>
+          <div class="study-answer">Correct Answer: ${item.correctAnswer}</div>
+          <div class="study-answer-meaning">Added: ${item.addedAt}</div>
+          <button class="btn btn-outline btn-small remove-revision" data-index="${index}">
+            <span class="icon">🗑️</span>
+            <span>Remove</span>
+          </button>
+        `;
+        revisionWords.appendChild(revisionItem);
+      });
+      
+      // Add event listeners for remove buttons
+      document.querySelectorAll('.remove-revision').forEach(btn => {
+        btn.addEventListener('click', (e) => {
+          const index = parseInt(e.currentTarget.dataset.index);
+          this.removeFromRevision(index);
+        });
+      });
+      
+      revisionListCount.textContent = `${this.revisionList.length} word${this.revisionList.length !== 1 ? 's' : ''}`;
+      clearButton.style.display = 'inline-block';
+    }
+  }
+
+  removeFromRevision(index) {
+    this.revisionList.splice(index, 1);
+    this.saveRevisionList(); // Save to localStorage
+    this.displayRevisionList();
+    this.showNotification('📝 Word removed from revision list', 'success');
+  }
+
+  clearRevisionList() {
+    if (this.revisionList.length === 0) return;
+    
+    if (confirm('Are you sure you want to clear all words from the revision list?')) {
+      this.revisionList = [];
+      this.saveRevisionList(); // Save to localStorage
+      this.displayRevisionList();
+      this.showNotification('📝 Revision list cleared', 'success');
+    }
+  }
+
+  updateRevisionCount() {
+    const revisionCountElement = document.getElementById('revision-count');
+    if (revisionCountElement) {
+      const count = this.revisionList.length;
+      revisionCountElement.textContent = `${count} word${count !== 1 ? 's' : ''}`;
+    }
   }
 
   nextQuestion() {
@@ -649,7 +983,8 @@ class QuizApp {
 
   updateScore() {
     const questionsAnswered = this.currentQuestionIndex + 1;
-    this.scoreElement.textContent = `Score: ${this.score}/${questionsAnswered}`;
+    const skippedInfo = this.skippedCount > 0 ? ` (${this.skippedCount} skipped)` : '';
+    this.scoreElement.textContent = `Score: ${this.score}/${questionsAnswered}${skippedInfo}`;
     
     // Add score animation
     this.scoreElement.style.transform = 'scale(1.1)';
@@ -728,6 +1063,17 @@ class QuizApp {
     
     document.getElementById('final-score').textContent = `${this.score}/${questionsAnswered}`;
     document.getElementById('percentage').textContent = `${percentage}%`;
+    
+    // Add skip information if any questions were skipped
+    const skipInfo = document.getElementById('skip-info');
+    if (skipInfo) {
+      if (this.skippedCount > 0) {
+        skipInfo.textContent = `(${this.skippedCount} skipped)`;
+        skipInfo.style.display = 'inline';
+      } else {
+        skipInfo.style.display = 'none';
+      }
+    }
     
     // Dynamic result message based on performance and completion
     const resultMessage = document.getElementById('result-message');

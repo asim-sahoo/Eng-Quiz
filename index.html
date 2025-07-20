@@ -62,6 +62,11 @@
             <span class="text">Study Mode</span>
             <span class="count">View all words</span>
           </button>
+          <button id="revision-mode" class="quiz-btn revision-btn">
+            <span class="icon">📝</span>
+            <span class="text">Revision List</span>
+            <span class="count" id="revision-count">0 words</span>
+          </button>
         </div>
 
         <div class="randomize-section">
@@ -78,6 +83,10 @@
             <div class="shortcut">
               <kbd>1-4</kbd>
               <span>Select Answer</span>
+            </div>
+            <div class="shortcut">
+              <kbd>S</kbd>
+              <span>Skip Question</span>
             </div>
             <div class="shortcut">
               <kbd>Enter</kbd>
@@ -99,13 +108,6 @@
     <div id="quiz-screen" class="screen" style="display: none;">
       <div class="quiz-container">
         <div class="quiz-header">
-          <div class="quiz-header-top">
-            <button id="home-btn" class="btn btn-outline btn-small home-btn">
-              <span class="icon">🏠</span>
-              <span>Home</span>
-            </button>
-            <div class="header-spacer"></div>
-          </div>
           <div class="progress-info">
             <span id="progress">Question 1</span>
             <span id="score">Score: 0/0</span>
@@ -125,6 +127,18 @@
         </div>
 
         <div class="quiz-actions">
+          <button id="home-btn" class="btn btn-outline">
+            <span class="icon">🏠</span>
+            <span>Home</span>
+          </button>
+          <button id="skip-btn" class="btn btn-warning">
+            <span class="icon">⏭️</span>
+            <span>Skip</span>
+          </button>
+          <button id="revise-btn" class="btn btn-info" style="display: none;">
+            <span class="icon">📝</span>
+            <span>Add to Revise</span>
+          </button>
           <button id="continue-btn" class="btn btn-primary" style="display: none;">Continue</button>
           <button id="finish-btn" class="btn btn-secondary" style="display: none;">Finish Quiz</button>
         </div>
@@ -139,6 +153,7 @@
           <div class="score-display">
             <div class="final-score">
               <span id="final-score">0/0</span>
+              <span id="skip-info" style="display: none;"></span>
               <span id="percentage">0%</span>
             </div>
             <div id="result-message" class="result-message">Great job!</div>
@@ -199,6 +214,33 @@
 
         <div class="study-actions">
           <button id="back-from-study" class="btn btn-primary">Back to Home</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Revision List Screen -->
+    <div id="revision-screen" class="screen" style="display: none;">
+      <div class="study-container">
+        <div class="study-header">
+          <h2>📝 Revision List</h2>
+          <p>Words you've marked for later review</p>
+        </div>
+
+        <div class="study-stats">
+          <span id="revision-list-count">No words added yet</span>
+          <button id="clear-revision" class="btn btn-outline btn-small" style="display: none;">Clear All</button>
+        </div>
+
+        <div id="revision-words" class="study-list">
+          <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <h3>No words in revision list</h3>
+            <p>When taking quizzes, use the "Add to Revise" button to save words for later review.</p>
+          </div>
+        </div>
+
+        <div class="study-actions">
+          <button id="back-from-revision" class="btn btn-primary">Back to Home</button>
         </div>
       </div>
     </div>
