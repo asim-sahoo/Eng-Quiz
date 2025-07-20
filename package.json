@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.0.0",
   "type": "module",
-  "homepage": "https://USERNAME.github.io/Eng-Quiz",
+  "homepage": "https://asim-sahoo.github.io/Eng-Quiz",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
