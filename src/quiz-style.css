@@ -504,7 +504,8 @@ body {
 }
 
 .streak-icon {
-  font-size: 1rem;
+  font-size: 1.2em;
+  flex-shrink: 0;
   /* Removed distracting fireFlicker animation */
 }
 
@@ -572,7 +573,8 @@ body {
 }
 
 .timer-icon {
-  font-size: 1rem;
+  font-size: 1.2em;
+  flex-shrink: 0;
   /* Removed distracting tickTock animation */
 }
 
@@ -1165,8 +1167,8 @@ body {
     padding: 12px;
   }
 
-  .welcome-container, 
-  .quiz-container, 
+  .welcome-container,
+  .quiz-container,
   .results-container {
     padding: 24px 16px;
   }
@@ -1193,6 +1195,11 @@ body {
     font-size: 0.85rem;
     padding: 6px 8px;
     min-height: 40px;
+  }
+
+  .streak-icon,
+  .timer-icon {
+    font-size: 1.1em;
   }
 
   .quiz-options {
@@ -1254,13 +1261,18 @@ body {
     min-height: 36px;
   }
 
+  .streak-icon,
+  .timer-icon {
+    font-size: 1em;
+  }
+
   .question-section h2 {
     font-size: 1.4rem;
     margin-bottom: 12px;
   }
 
-  .welcome-container, 
-  .quiz-container, 
+  .welcome-container,
+  .quiz-container,
   .results-container {
     padding: 16px 12px;
   }
