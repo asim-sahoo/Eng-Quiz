@@ -800,7 +800,7 @@ body {
 }
 
 .option {
-  background: var(--bg-card);
+  background: var(--gradient-primary);
   border: 3px solid var(--border);
   border-radius: var(--border-radius);
   padding: 24px;
@@ -809,6 +809,7 @@ body {
   font-size: 1.15rem;
   font-weight: 500;
   text-align: center;
+  color: white;
   position: relative;
   overflow: hidden;
   transform: perspective(1000px) rotateX(0deg);
