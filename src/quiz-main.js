@@ -10,7 +10,7 @@ class QuizApp {
     this.currentQuizType = 'antonyms';
     this.mistakes = [];
     this.answeredQuestions = [];
-    this.maxQuestions = 10; // Limit to 10 questions per quiz session
+    this.maxQuestions = null; // No limit - allow all questions
     this.soundEnabled = true;
     this.streak = 0;
     this.bestStreak = 0;
@@ -356,9 +356,9 @@ class QuizApp {
     );
     
     if (availableQuestions.length === 0) {
-      // All questions answered, reset the pool
-      this.answeredQuestions = [];
-      return this.randomizedQuizData[this.currentQuizType][Math.floor(Math.random() * this.randomizedQuizData[this.currentQuizType].length)];
+      // All questions answered - this shouldn't happen due to nextQuestion() check
+      // But just in case, return null to indicate completion
+      return null;
     }
     
     const randomIndex = Math.floor(Math.random() * availableQuestions.length);
@@ -373,6 +373,13 @@ class QuizApp {
 
   loadQuestion() {
     const currentQuestion = this.getRandomQuestion();
+    
+    // Check if all questions are completed
+    if (!currentQuestion) {
+      this.showResults();
+      return;
+    }
+    
     this.selectedAnswer = null;
     this.isAnswered = false;
     
@@ -540,8 +547,9 @@ class QuizApp {
   nextQuestion() {
     this.currentQuestionIndex++;
     
-    // Check if we've reached the maximum questions limit
-    if (this.currentQuestionIndex >= this.maxQuestions) {
+    // Check if we've gone through all questions
+    if (this.answeredQuestions.length >= this.randomizedQuizData[this.currentQuizType].length) {
+      // All questions have been answered, show results
       this.showResults();
       return;
     }
@@ -551,13 +559,15 @@ class QuizApp {
 
   updateProgress() {
     const questionsAnswered = this.currentQuestionIndex + 1;
-    this.progressElement.textContent = `Question ${questionsAnswered}/${this.maxQuestions}`;
+    const totalQuestions = this.randomizedQuizData[this.currentQuizType].length;
+    this.progressElement.textContent = `Question ${questionsAnswered} of ${totalQuestions}`;
   }
 
   updateProgressBar() {
-    // Update progress bar based on questions answered vs maximum
+    // Update progress bar based on questions answered vs total questions
     const questionsAnswered = this.currentQuestionIndex + 1;
-    const progressPercentage = (questionsAnswered / this.maxQuestions) * 100;
+    const totalQuestions = this.randomizedQuizData[this.currentQuizType].length;
+    const progressPercentage = (questionsAnswered / totalQuestions) * 100;
     
     if (this.progressBar) {
       this.progressBar.style.width = `${progressPercentage}%`;
@@ -627,7 +637,9 @@ class QuizApp {
 
   showResults() {
     const questionsAnswered = this.currentQuestionIndex + 1;
+    const totalQuestions = this.randomizedQuizData[this.currentQuizType].length;
     const percentage = Math.round((this.score / questionsAnswered) * 100);
+    const completedAll = questionsAnswered >= totalQuestions;
     
     // Clear timer
     if (this.timer) {
@@ -644,11 +656,13 @@ class QuizApp {
     document.getElementById('final-score').textContent = `${this.score}/${questionsAnswered}`;
     document.getElementById('percentage').textContent = `${percentage}%`;
     
-    // Dynamic result message based on performance
+    // Dynamic result message based on performance and completion
     const resultMessage = document.getElementById('result-message');
     let message = '';
     
-    if (percentage >= 90) {
+    if (completedAll) {
+      message = `🎉 Quiz Complete! You answered all ${totalQuestions} questions!`;
+    } else if (percentage >= 90) {
       message = '🎉 Outstanding! You\'re a vocabulary master!';
     } else if (percentage >= 70) {
       message = '🎯 Great job! Keep up the excellent work!';
