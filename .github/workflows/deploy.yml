@@ -3,8 +3,9 @@ name: Deploy to GitHub Pages
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
+  # Disabled pull request builds for now
+  # pull_request:
+  #   branches: [ main ]
 
 permissions:
   contents: read
