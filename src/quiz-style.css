@@ -279,6 +279,17 @@ body {
   margin: 48px 0;
 }
 
+/* Study Mode Button Styling */
+.study-btn {
+  background: var(--gradient-success);
+  color: white;
+}
+
+.study-btn:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-xl);
+}
+
 /* Randomize Section */
 .randomize-section {
   text-align: center;
@@ -1189,9 +1200,169 @@ body {
 }
 
 .review-actions {
+  text-align: center;
+  margin-top: 40px;
+}
+
+/* Study Mode Screen */
+.study-container {
+  padding: 40px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.study-header {
+  text-align: center;
+  margin-bottom: 32px;
+}
+
+.study-header h2 {
+  font-size: 2.25rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-bottom: 16px;
+}
+
+.study-header p {
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.study-controls {
   display: flex;
-  justify-content: center;
+  gap: 16px;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.study-controls .btn {
+  min-width: 140px;
+}
+
+.study-controls .btn.active {
+  background: var(--primary);
+  color: white;
+}
+
+.search-container {
+  position: relative;
+  flex: 1;
+  min-width: 250px;
+}
+
+.search-input {
+  width: 100%;
+  padding: 12px 16px 12px 48px;
+  border: 2px solid var(--border);
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  background: var(--bg-card);
+  transition: var(--transition);
+}
+
+.search-input:focus {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.1);
+}
+
+.search-icon {
+  position: absolute;
+  left: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-size: 1.1rem;
+  color: var(--text-secondary);
+}
+
+.study-stats {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.btn-small {
+  padding: 8px 16px;
+  font-size: 0.9rem;
+}
+
+.study-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 16px;
+  margin-bottom: 40px;
+}
+
+.study-item {
+  background: var(--bg-card);
+  border: 1px solid var(--border);
+  border-radius: var(--border-radius);
+  padding: 20px;
+  transition: var(--transition);
+  cursor: pointer;
+}
+
+.study-item:hover {
+  border-color: var(--primary);
+  box-shadow: var(--shadow);
+  transform: translateY(-2px);
+}
+
+.study-word {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+}
+
+.study-meaning {
+  font-size: 0.95rem;
+  color: var(--text-secondary);
+  margin-bottom: 12px;
+  font-style: italic;
+}
+
+.study-answer {
+  font-size: 1.1rem;
+  font-weight: 500;
+  color: var(--text-primary);
+  margin-bottom: 8px;
+}
+
+.study-answer-meaning {
+  font-size: 0.9rem;
+  color: var(--text-light);
+  line-height: 1.4;
+}
+
+.study-type-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-size: 0.8rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+}
+
+.study-type-badge.antonym {
+  background: rgba(239, 68, 68, 0.1);
+  color: #dc2626;
+}
+
+.study-type-badge.synonym {
+  background: rgba(16, 185, 129, 0.1);
+  color: #059669;
+}
+
+.study-actions {
+  text-align: center;
   margin-top: 32px;
+  padding-top: 24px;
+  border-top: 1px solid var(--border);
 }
 
 /* Animations */
@@ -1347,6 +1518,40 @@ body {
     flex-direction: column;
     gap: 16px;
   }
+
+  /* Mobile study mode */
+  .study-container {
+    padding: 24px 16px;
+  }
+
+  .study-header h2 {
+    font-size: 2rem;
+  }
+
+  .study-controls {
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  .study-controls .btn {
+    width: 100%;
+    min-width: auto;
+  }
+
+  .search-container {
+    min-width: auto;
+  }
+
+  .study-list {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .study-stats {
+    flex-direction: column;
+    gap: 12px;
+    align-items: flex-start;
+  }
 }
 
 @media (max-width: 480px) {
@@ -1413,7 +1618,8 @@ body {
 
   /* Very small screen results and review */
   .results-header h2,
-  .review-header h2 {
+  .review-header h2,
+  .study-header h2 {
     font-size: 1.6rem;
   }
 
@@ -1427,6 +1633,19 @@ body {
 
   .result-message {
     font-size: 1rem;
+  }
+
+  /* Very small screen study mode */
+  .study-container {
+    padding: 16px 12px;
+  }
+
+  .study-item {
+    padding: 16px;
+  }
+
+  .study-word {
+    font-size: 1.1rem;
   }
 }
 

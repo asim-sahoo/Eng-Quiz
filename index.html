@@ -57,6 +57,11 @@
             <span class="text">Practice Synonyms</span>
             <span class="count">103 questions</span>
           </button>
+          <button id="study-mode" class="quiz-btn study-btn">
+            <span class="icon">📚</span>
+            <span class="text">Study Mode</span>
+            <span class="count">View all words</span>
+          </button>
         </div>
 
         <div class="randomize-section">
@@ -155,6 +160,38 @@
 
         <div class="review-actions">
           <button id="back-from-review" class="btn btn-primary">Back to Results</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Study Mode Screen -->
+    <div id="study-screen" class="screen" style="display: none;">
+      <div class="study-container">
+        <div class="study-header">
+          <h2>Study Mode</h2>
+          <p>Review all vocabulary words at your own pace</p>
+        </div>
+
+        <div class="study-controls">
+          <button id="show-antonyms" class="btn btn-primary active">Antonyms (105)</button>
+          <button id="show-synonyms" class="btn btn-secondary">Synonyms (103)</button>
+          <div class="search-container">
+            <input type="text" id="word-search" placeholder="Search words..." class="search-input">
+            <span class="search-icon">🔍</span>
+          </div>
+        </div>
+
+        <div class="study-stats">
+          <span id="study-count">Showing 105 words</span>
+          <button id="toggle-alphabetical" class="btn btn-outline btn-small">Sort A-Z</button>
+        </div>
+
+        <div id="study-list" class="study-list">
+          <!-- Study words will be generated dynamically -->
+        </div>
+
+        <div class="study-actions">
+          <button id="back-from-study" class="btn btn-primary">Back to Home</button>
         </div>
       </div>
     </div>

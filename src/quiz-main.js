@@ -251,6 +251,7 @@ class QuizApp {
     this.quizScreen = document.getElementById('quiz-screen');
     this.resultsScreen = document.getElementById('results-screen');
     this.reviewScreen = document.getElementById('review-screen');
+    this.studyScreen = document.getElementById('study-screen');
     
     this.questionElement = document.getElementById('question');
     this.meaningElement = document.getElementById('word-meaning');
@@ -348,6 +349,7 @@ class QuizApp {
   attachEventListeners() {
     document.getElementById('start-antonyms').addEventListener('click', () => this.startQuiz('antonyms'));
     document.getElementById('start-synonyms').addEventListener('click', () => this.startQuiz('synonyms'));
+    document.getElementById('study-mode').addEventListener('click', () => this.showStudyMode());
     document.getElementById('randomize-btn').addEventListener('click', () => this.reshuffleQuestions());
     
     this.continueButton.addEventListener('click', () => this.nextQuestion());
@@ -357,6 +359,13 @@ class QuizApp {
     document.getElementById('home-btn').addEventListener('click', () => this.showWelcomeScreen());
     document.getElementById('review-btn').addEventListener('click', () => this.showReview());
     document.getElementById('back-from-review').addEventListener('click', () => this.backToResults());
+    
+    // Study mode event listeners
+    document.getElementById('back-from-study').addEventListener('click', () => this.showWelcomeScreen());
+    document.getElementById('show-antonyms').addEventListener('click', () => this.showStudyType('antonyms'));
+    document.getElementById('show-synonyms').addEventListener('click', () => this.showStudyType('synonyms'));
+    document.getElementById('toggle-alphabetical').addEventListener('click', () => this.toggleAlphabeticalSort());
+    document.getElementById('word-search').addEventListener('input', (e) => this.filterStudyWords(e.target.value));
   }
 
   showWelcomeScreen() {
@@ -364,12 +373,14 @@ class QuizApp {
     this.quizScreen.style.display = 'none';
     this.resultsScreen.style.display = 'none';
     this.reviewScreen.style.display = 'none';
+    this.studyScreen.style.display = 'none';
     
     // Ensure welcome screen is visible
     this.welcomeScreen.classList.add('show');
     this.quizScreen.classList.remove('show');
     this.resultsScreen.classList.remove('show');
     this.reviewScreen.classList.remove('show');
+    this.studyScreen.classList.remove('show');
   }
 
   startQuiz(type) {
@@ -400,12 +411,14 @@ class QuizApp {
     this.quizScreen.style.display = 'block';
     this.resultsScreen.style.display = 'none';
     this.reviewScreen.style.display = 'none';
+    this.studyScreen.style.display = 'none';
     
     // Ensure quiz screen is visible
     this.welcomeScreen.classList.remove('show');
     this.quizScreen.classList.add('show');
     this.resultsScreen.classList.remove('show');
     this.reviewScreen.classList.remove('show');
+    this.studyScreen.classList.remove('show');
     
     this.loadQuestion();
   }
@@ -789,6 +802,223 @@ class QuizApp {
 
   restartQuiz() {
     this.startQuiz(this.currentQuizType);
+  }
+
+  // Study Mode Functionality
+  showStudyMode() {
+    this.welcomeScreen.style.display = 'none';
+    this.quizScreen.style.display = 'none';
+    this.resultsScreen.style.display = 'none';
+    this.reviewScreen.style.display = 'none';
+    this.studyScreen.style.display = 'block';
+    
+    this.studyScreen.classList.add('show');
+    this.welcomeScreen.classList.remove('show');
+    
+    // Initialize study mode with antonyms
+    this.currentStudyType = 'antonyms';
+    this.isAlphabetical = false;
+    this.currentFilter = '';
+    
+    this.showStudyType('antonyms');
+  }
+
+  showStudyType(type) {
+    this.currentStudyType = type;
+    
+    // Update button states
+    const antonymBtn = document.getElementById('show-antonyms');
+    const synonymBtn = document.getElementById('show-synonyms');
+    
+    if (type === 'antonyms') {
+      antonymBtn.classList.add('active');
+      antonymBtn.classList.remove('btn-secondary');
+      antonymBtn.classList.add('btn-primary');
+      synonymBtn.classList.remove('active');
+      synonymBtn.classList.remove('btn-primary');
+      synonymBtn.classList.add('btn-secondary');
+    } else {
+      synonymBtn.classList.add('active');
+      synonymBtn.classList.remove('btn-secondary');
+      synonymBtn.classList.add('btn-primary');
+      antonymBtn.classList.remove('active');
+      antonymBtn.classList.remove('btn-primary');
+      antonymBtn.classList.add('btn-secondary');
+    }
+    
+    this.renderStudyList();
+  }
+
+  renderStudyList() {
+    const studyList = document.getElementById('study-list');
+    const studyCount = document.getElementById('study-count');
+    let words = [...this.randomizedQuizData[this.currentStudyType]];
+    
+    // Apply search filter
+    if (this.currentFilter) {
+      words = words.filter(item => 
+        item.word.toLowerCase().includes(this.currentFilter.toLowerCase()) ||
+        item.options[item.correct].toLowerCase().includes(this.currentFilter.toLowerCase())
+      );
+    }
+    
+    // Apply sorting
+    if (this.isAlphabetical) {
+      words.sort((a, b) => a.word.localeCompare(b.word));
+    }
+    
+    // Update count
+    const totalWords = this.randomizedQuizData[this.currentStudyType].length;
+    studyCount.textContent = this.currentFilter 
+      ? `Showing ${words.length} of ${totalWords} words`
+      : `Showing ${totalWords} words`;
+    
+    // Render items
+    studyList.innerHTML = '';
+    words.forEach(item => {
+      const studyItem = document.createElement('div');
+      studyItem.className = 'study-item';
+      
+      const correctAnswer = item.options[item.correct];
+      const answerMeaning = this.getAntonymMeaning(correctAnswer);
+      
+      studyItem.innerHTML = `
+        <div class="study-type-badge ${this.currentStudyType === 'antonyms' ? 'antonym' : 'synonym'}">
+          ${this.currentStudyType === 'antonyms' ? 'Antonym' : 'Synonym'}
+        </div>
+        <div class="study-word">${item.word}</div>
+        <div class="study-meaning">"${item.meaning}"</div>
+        <div class="study-answer">
+          ${this.currentStudyType === 'antonyms' ? '↔️' : '↗️'} ${correctAnswer}
+        </div>
+        <div class="study-answer-meaning">
+          ${this.currentStudyType === 'antonyms' ? answerMeaning : `Similar meaning: ${item.meaning}`}
+        </div>
+      `;
+      
+      studyList.appendChild(studyItem);
+    });
+  }
+
+  getAntonymMeaning(word) {
+    // Use the same antonym meanings database from getAnswerExplanation
+    const antonymMeanings = {
+      'abundance': 'a very large quantity of something',
+      'active': 'engaging in physical or mental activity',
+      'admire': 'to regard with respect and approval',
+      'aggravate': 'to make a problem or situation worse',
+      'agitation': 'a state of anxiety or nervous excitement',
+      'alleviate': 'to make suffering or difficulty less severe',
+      'apathetic': 'showing no interest or enthusiasm',
+      'beneficial': 'favorable or advantageous; resulting in good',
+      'benevolent': 'well-meaning and kindly',
+      'calm': 'not showing excitement, nervousness, or anger',
+      'careless': 'not giving sufficient attention or thought',
+      'cautious': 'careful to avoid potential problems or dangers',
+      'changeable': 'liable to change; unpredictable',
+      'cheerful': 'noticeably happy and optimistic',
+      'clear': 'easy to perceive, understand, or interpret',
+      'common': 'occurring frequently; ordinary',
+      'competent': 'having the necessary ability or knowledge',
+      'confusing': 'difficult to understand; unclear',
+      'consistent': 'acting in the same way over time',
+      'convict': 'to declare guilty of a criminal offense',
+      'cowardly': 'lacking courage; showing fear',
+      'definite': 'clearly stated or decided; not vague',
+      'depressed': 'feeling very unhappy and hopeless',
+      'disagree': 'to have a different opinion',
+      'dislike': 'to feel distaste for something',
+      'disrespect': 'lack of respect or courtesy',
+      'easy': 'requiring little effort; simple',
+      'enduring': 'lasting; continuing for a long time',
+      'energetic': 'showing great activity or vitality',
+      'energize': 'to give vitality and enthusiasm to',
+      'enthusiastic': 'showing intense excitement and interest',
+      'excellent': 'extremely good; outstanding',
+      'exciting': 'causing great enthusiasm and eagerness',
+      'extraordinary': 'very unusual or remarkable',
+      'fallible': 'capable of making mistakes',
+      'famous': 'known about by many people',
+      'fearful': 'feeling afraid; showing fear',
+      'flexible': 'able to bend easily; adaptable',
+      'generosity': 'the quality of being kind and generous',
+      'harmful': 'causing or likely to cause harm',
+      'harmless': 'not able or likely to cause harm',
+      'harmony': 'agreement; peaceful coexistence',
+      'hidden': 'kept out of sight; concealed',
+      'hinder': 'to obstruct or delay the progress of',
+      'honesty': 'the quality of being honest and truthful',
+      'humble': 'having a modest opinion of one\'s importance',
+      'inarticulate': 'unable to speak distinctly or express oneself clearly',
+      'indulge': 'to allow oneself to enjoy the pleasure of something',
+      'industrious': 'diligent and hardworking',
+      'intensify': 'to become or make more intense',
+      'intentional': 'done on purpose; deliberate',
+      'introverted': 'shy and reticent; focused inward',
+      'lazy': 'unwilling to work or use energy',
+      'lengthiness': 'the quality of being long in time or extent',
+      'luxurious': 'extremely comfortable, elegant, or enjoyable',
+      'malevolent': 'having or showing a wish to do evil to others',
+      'miserable': 'very unhappy or uncomfortable',
+      'modern': 'relating to the present or recent times',
+      'modest': 'unassuming in estimation of one\'s abilities',
+      'moral': 'concerned with principles of right and wrong behavior',
+      'narrow': 'having a small width in relation to length',
+      'neglect': 'to fail to care for properly',
+      'neutral': 'not supporting either side in a conflict',
+      'normality': 'the condition of being normal',
+      'obvious': 'easily perceived or understood; clear',
+      'open': 'not closed or blocked; accessible',
+      'oppose': 'to disagree with or resist',
+      'original': 'present or existing from the beginning',
+      'originality': 'the ability to think independently and creatively',
+      'overlook': 'to fail to notice or consider',
+      'permanent': 'lasting or intended to last indefinitely',
+      'persuade': 'to cause someone to believe something through reasoning',
+      'petty': 'of little importance; trivial',
+      'praise': 'to express warm approval or admiration',
+      'preserve': 'to maintain something in its original state',
+      'provoke': 'to stimulate or give rise to a reaction',
+      'reckless': 'without thinking or caring about consequences',
+      'respect': 'a feeling of deep admiration',
+      'respectful': 'showing deference and respect',
+      'scarce': 'existing in small numbers; insufficient',
+      'secure': 'fixed or fastened so as not to give way',
+      'selfish': 'lacking consideration for others',
+      'serious': 'demanding careful consideration or application',
+      'seriousness': 'the quality of being serious or grave',
+      'sloppy': 'careless and unsystematic; slovenly',
+      'stubborn': 'having a determined refusal to change attitude',
+      'subtle': 'so delicate as to be difficult to perceive',
+      'success': 'the accomplishment of an aim or purpose',
+      'taciturn': 'reserved or uncommunicative in speech',
+      'thorough': 'complete with regard to every detail',
+      'timid': 'showing a lack of courage or confidence',
+      'truthful': 'telling or expressing the truth; honest',
+      'unlikely': 'not likely to happen or be the case',
+      'unproductive': 'not producing desired results',
+      'unrepentant': 'showing no regret for one\'s wrongdoings',
+      'vague': 'of uncertain, indefinite, or unclear character',
+      'verbose': 'using more words than necessary',
+      'virtuous': 'having high moral standards',
+      'wordy': 'using or expressed in too many words',
+      'worsen': 'to become or make worse',
+      'yielding': 'giving way under pressure; flexible'
+    };
+    
+    return antonymMeanings[word] || 'opposite meaning';
+  }
+
+  toggleAlphabeticalSort() {
+    this.isAlphabetical = !this.isAlphabetical;
+    const sortBtn = document.getElementById('toggle-alphabetical');
+    sortBtn.textContent = this.isAlphabetical ? 'Sort Random' : 'Sort A-Z';
+    this.renderStudyList();
+  }
+
+  filterStudyWords(query) {
+    this.currentFilter = query.trim();
+    this.renderStudyList();
   }
 }
 
