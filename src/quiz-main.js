@@ -141,6 +141,12 @@ class QuizApp {
     this.quizScreen.style.display = 'none';
     this.resultsScreen.style.display = 'none';
     this.reviewScreen.style.display = 'none';
+    
+    // Ensure welcome screen is visible
+    this.welcomeScreen.classList.add('show');
+    this.quizScreen.classList.remove('show');
+    this.resultsScreen.classList.remove('show');
+    this.reviewScreen.classList.remove('show');
   }
 
   startQuiz(type) {
@@ -171,6 +177,12 @@ class QuizApp {
     this.quizScreen.style.display = 'block';
     this.resultsScreen.style.display = 'none';
     this.reviewScreen.style.display = 'none';
+    
+    // Ensure quiz screen is visible
+    this.welcomeScreen.classList.remove('show');
+    this.quizScreen.classList.add('show');
+    this.resultsScreen.classList.remove('show');
+    this.reviewScreen.classList.remove('show');
     
     this.loadQuestion();
   }

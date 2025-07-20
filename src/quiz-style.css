@@ -70,14 +70,8 @@ body {
 }
 
 .screen.show {
-  display: block !important;
   opacity: 1;
   transform: translateY(0);
-}
-
-.screen:not(.show) {
-  opacity: 0;
-  transform: translateY(20px);
 }
 
 .screen::before {
